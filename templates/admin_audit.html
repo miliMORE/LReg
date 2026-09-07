@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %}Activity reports{% endblock %}
+{% block content %}
+<div class="page-hero">
+  <div class="eyebrow">Administration</div>
+  <h1>Activity &amp; login reports</h1>
+  <p>Times shown in {{ eat_label }}.</p>
+</div>
+
+{% if lockouts %}
+<div class="card">
+  <h2>Active login lockouts</h2>
+  <p style="font-size:14px;color:#555;margin-top:0;">Locked-until times are shown in EAT.</p>
+  <div class="table-wrap">
+  <table>
+    <tr>
+      <th>Username</th>
+      <th data-sort="number">Failed attempts</th>
+      <th data-sort="date">Locked until (EAT)</th>
+      <th class="no-sort"></th>
+    </tr>
+    {% for row in lockouts %}
+    <tr>
+      <td><code>{{ row.username_lower }}</code></td>
+      <td>{{ row.failed_attempts }}</td>
+      <td data-sort-value="{{ row.locked_until }}">{{ row.locked_until | eat_time }} EAT</td>
+      <td>
+        <form method="post" style="display:inline">
+          <input type="hidden" name="action" value="clear_lockout">
+          <input type="hidden" name="username" value="{{ row.username_lower }}">
+          <button class="btn btn-sm btn-green" type="submit">Clear lockout</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  </div>
+  <p style="font-size:14px;color:#555;margin-top:8px;">
+    Users can also regain access when an admin resets their password (clears lockout automatically).
+  </p>
+</div>
+{% endif %}
+
+<div class="card">
+  <h2>Filter activity log</h2>
+  <form method="get" class="btn-group" style="flex-wrap:wrap;align-items:flex-end;gap:12px;">
+    <div>
+      <label style="display:block;font-size:13px;">Event type</label>
+      <select name="event_type">
+        <option value="">All events</option>
+        {% for key, label in event_labels.items() %}
+        <option value="{{ key }}"{% if event_type == key %} selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label style="display:block;font-size:13px;">Username</label>
+      <input name="username" value="{{ username_filter }}" placeholder="e.g. LCA0001">
+    </div>
+    <div>
+      <label style="display:block;font-size:13px;">From date (EAT)</label>
+      <input type="date" name="date_from" value="{{ date_from }}">
+    </div>
+    <div>
+      <label style="display:block;font-size:13px;">To date (EAT)</label>
+      <input type="date" name="date_to" value="{{ date_to }}">
+    </div>
+    <button class="btn" type="submit">Apply filter</button>
+    <a class="btn btn-outline" href="{{ url_for('admin_audit') }}">Clear</a>
+    <a class="btn btn-green"
+       href="{{ url_for('admin_audit_download', event_type=event_type, username=username_filter, date_from=date_from, date_to=date_to) }}">
+      Download CSV
+    </a>
+  </form>
+  <p style="font-size:13px;color:#555;margin-top:10px;">
+    Download includes all matching records for the selected filters. Timestamps in the CSV are in EAT.
+  </p>
+</div>
+
+<div class="card">
+  <h2>Activity log <span style="font-weight:normal;font-size:14px;">(showing {{ events|length }} entries — times in EAT)</span></h2>
+  <div class="table-wrap">
+  <table>
+    <tr>
+      <th data-sort="date">When (EAT)</th>
+      <th>Event</th>
+      <th>User</th>
+      <th>Role</th>
+      <th>IP</th>
+      <th>Details</th>
+    </tr>
+    {% for e in events %}
+    <tr>
+      <td data-sort-value="{{ e.created_at }}">{{ e.created_at | eat_time }} EAT</td>
+      <td>{{ event_labels.get(e.event_type, e.event_type) }}</td>
+      <td>
+        {% if e.full_name %}{{ e.full_name }}<br>{% endif %}
+        <code>{{ e.username or '—' }}</code>
+      </td>
+      <td>{{ e.role or '—' }}</td>
+      <td>{{ e.ip_address or '—' }}</td>
+      <td style="font-size:13px;max-width:280px;word-break:break-word;">
+        {% if e.method and e.endpoint %}
+          <span>{{ e.method }} {{ e.endpoint }}</span><br>
+        {% endif %}
+        {% if e.detail %}{{ e.detail }}{% else %}—{% endif %}
+      </td>
+    </tr>
+    {% else %}
+    <tr><td colspan="6">No activity recorded for this filter.</td></tr>
+    {% endfor %}
+  </table>
+  </div>
+</div>
+
+<p><a class="btn" href="{{ url_for('admin_home') }}">Back to admin</a></p>
+{% endblock %}

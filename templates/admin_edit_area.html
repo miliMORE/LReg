@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Edit thematic area{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>Edit thematic area</h1>
+  <p>Correct spelling or update display order. Slug changes affect internal links — edit only if necessary.</p>
+
+  <div style="margin:16px 0;padding:12px;background:var(--light);border-radius:4px;font-size:14px;">
+    <strong>Status:</strong>
+    {% if area.is_active %}
+      <span class="badge completed">Active</span>
+    {% else %}
+      <span class="badge inactive">Obsolete</span> — not offered to new learners
+    {% endif %}
+  </div>
+
+  <form method="post">
+    <label>Name <span style="color:var(--red)">*</span></label>
+    <input name="name" required value="{{ area.name }}">
+
+    <label>Slug <span style="color:var(--red)">*</span></label>
+    <input name="slug" required value="{{ area.slug }}"
+           pattern="[a-z0-9]+(-[a-z0-9]+)*"
+           title="Lowercase letters, numbers, and hyphens only">
+
+    <label>Description <em>(optional)</em></label>
+    <textarea name="description" rows="3">{{ area.description or '' }}</textarea>
+
+    <label>Sort order <span style="color:var(--red)">*</span></label>
+    <input name="sort_order" type="number" min="1" required value="{{ area.sort_order }}">
+    <p style="font-size:13px;color:#555;">Must be unique among all thematic areas.</p>
+
+    <p style="margin-top:16px">
+      <button class="btn btn-green" type="submit">Save changes</button>
+      <a class="btn" href="{{ url_for('admin_modules', area_id=area.id) }}">Manage modules</a>
+      <a class="btn" href="{{ url_for('admin_areas') }}">Back to areas</a>
+    </p>
+  </form>
+</div>
+
+<div class="card">
+  <h2>Offering status</h2>
+  {% if area.is_active %}
+  <p>Mark obsolete when LCAF no longer offers this area. Attendance and progress data are preserved.</p>
+  <form method="post" action="{{ url_for('admin_set_area_status', area_id=area.id) }}"
+        onsubmit="return confirm('Mark {{ area.name }} as obsolete?');">
+    <input type="hidden" name="active" value="0">
+    <button class="btn btn-warn" type="submit">Mark area obsolete</button>
+  </form>
+  {% else %}
+  <p>This area is obsolete. Reactivate to offer it again to new learners.</p>
+  <form method="post" action="{{ url_for('admin_set_area_status', area_id=area.id) }}">
+    <input type="hidden" name="active" value="1">
+    <button class="btn btn-green" type="submit">Reactivate area</button>
+  </form>
+  {% endif %}
+</div>
+{% endblock %}

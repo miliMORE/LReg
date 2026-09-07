@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Edit session{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>Edit delivery session</h1>
+  <p>
+    <strong>{{ ds.area_name }}</strong> — M{{ ds.module_number }}: {{ ds.module_name }}<br>
+    Update the <em>planned</em> schedule below. When the class is actually delivered, record the
+    conducted date on the attendance log (or here if already completed).
+  </p>
+
+  <form method="post">
+    <h2>Planned schedule</h2>
+    <label>Scheduled date <span style="color:var(--red)">*</span></label>
+    <input type="date" name="scheduled_date" required value="{{ ds.scheduled_date }}">
+
+    <label>Scheduled time <span style="color:var(--red)">*</span></label>
+    <input type="time" name="scheduled_time" required value="{{ ds.scheduled_time or '09:00' }}">
+
+    <label>Session type <span style="color:var(--red)">*</span></label>
+    <select name="session_type" required>
+      <option value="online" {% if ds.session_type == 'online' %}selected{% endif %}>Online</option>
+      <option value="practical" {% if ds.session_type == 'practical' %}selected{% endif %}>Practical</option>
+      <option value="both" {% if ds.session_type == 'both' %}selected{% endif %}>Online + practical</option>
+    </select>
+
+    <label>Title</label>
+    <input name="title" value="{{ ds.title or '' }}" placeholder="e.g. Digital Literacy M6 — Live Session">
+
+    <label>Status</label>
+    <select name="status">
+      <option value="scheduled" {% if ds.status == 'scheduled' %}selected{% endif %}>Scheduled</option>
+      <option value="completed" {% if ds.status == 'completed' %}selected{% endif %}>Completed</option>
+      <option value="cancelled" {% if ds.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+    </select>
+
+    <h2 style="margin-top:24px">When class was conducted</h2>
+    <p style="font-size:14px;color:#555;">
+      Only for completed sessions. May differ from the planned schedule above.
+    </p>
+    <label>Conducted date <em>(if completed)</em></label>
+    <input type="date" name="conducted_date"
+           value="{{ ds.conducted_date or ds.scheduled_date }}">
+
+    <label>Conducted time <em>(if completed)</em></label>
+    <input type="time" name="conducted_time"
+           value="{{ ds.conducted_time or ds.scheduled_time or '09:00' }}">
+
+    <label>Notes <em>(optional)</em></label>
+    <textarea name="notes" rows="2" placeholder="e.g. Rescheduled due to connectivity issues">{{ ds.notes or '' }}</textarea>
+
+    <p style="margin-top:16px">
+      <button class="btn btn-green" type="submit">Save changes</button>
+      {% if ds.status != 'cancelled' %}
+      <a class="btn btn-sm" href="{{ url_for('facilitator_attendance', session_id=ds.id) }}">Attendance log</a>
+      {% endif %}
+      <a class="btn" href="{{ url_for('facilitator_home') }}">Cancel</a>
+    </p>
+  </form>
+</div>
+{% endblock %}

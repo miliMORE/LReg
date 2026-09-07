@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Assignments{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>Assignment submission log</h1>
+  <p><strong>{{ mod.area_name }}</strong> — M{{ mod.module_number }}: {{ mod.name }}</p>
+  <p>Tick learners who submitted the required assignment for this module.</p>
+  <form method="post">
+    <div class="table-wrap">
+    <table>
+      <tr><th>Submitted</th><th>Learner ID</th><th>Name</th><th>Joined</th></tr>
+      {% for l in learners %}
+      <tr>
+        <td><input type="checkbox" name="learner_{{ l.id }}" {% if submitted.get(l.id) %}checked{% endif %}></td>
+        <td>{{ l.username }}</td>
+        <td>{{ l.full_name }}</td>
+        <td>{{ l.join_date }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+    </div>
+    <p style="margin-top:16px">
+      <button class="btn btn-green" type="submit">Save assignment log</button>
+      <a class="btn" href="{{ url_for('facilitator_home') }}">Back</a>
+    </p>
+  </form>
+</div>
+{% endblock %}

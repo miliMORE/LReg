@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Initialize{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>Initialize LCAF Registry</h1>
+  <p>Create the database and load the official programme structure.</p>
+  <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button class="btn" type="submit">Initialize registry</button>
+  </form>
+</div>
+{% endblock %}

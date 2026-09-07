@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Completion criteria{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>Module completion criteria</h1>
+  <p>Current rules (extensible — stored in database for future criteria):</p>
+  <div class="table-wrap">
+  <table>
+    <tr><th>Criterion</th><th>Required</th></tr>
+    {% for key, cfg in criteria.items() %}
+    <tr>
+      <td>{{ cfg.label }}</td>
+      <td>{{ 'Yes' if cfg.required else 'No' }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  </div>
+  <p>A module is <strong>Completed</strong> when all required criteria are met. Today: attended session(s) + assignment submitted.</p>
+  <p>Overall <strong>LCAF Certificate</strong>: all modules in all active thematic areas completed.</p>
+  <p><em>Future criteria (e.g. quiz pass, facilitator verification) can be added via app_settings without rebuilding the app.</em></p>
+</div>
+<p><a class="btn" href="{{ url_for('admin_home') }}">Back to admin</a></p>
+{% endblock %}

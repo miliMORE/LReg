@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}{{ learner.full_name }} — Progress{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>{% if viewer_role %}Learner: {% endif %}{{ learner.full_name }}</h1>
+  <p><strong>Learner ID:</strong> {{ learner.username }}
+    {% if learner.national_id %} | <strong>National ID:</strong> {{ learner.national_id }}{% endif %}</p>
+  <p>Joined: <strong>{{ learner.join_date }}</strong>
+    {% if learner.placement_org %} | Placement: {{ learner.placement_org }}{% endif %}</p>
+  <h2>Overall progress</h2>
+  <div class="progress-bar">
+    <div class="progress-fill" style="width:{{ summary.overall.percent }}%">{{ summary.overall.percent }}%</div>
+  </div>
+  <p>{{ summary.overall.completed_modules }} of {{ summary.overall.total_modules }} modules completed
+    across {{ summary.overall.areas_total }} thematic areas
+    ({{ summary.overall.areas_complete }} areas fully complete).</p>
+  {% if summary.certificate_issued %}
+    <p style="color:var(--green)"><strong>LCAF Certificate issued</strong> on {{ summary.certificate_issued_at }}</p>
+  {% elif summary.certificate_eligible %}
+    <p style="color:var(--green)"><strong>Eligible for overall LCAF Certificate</strong> — contact admin.</p>
+  {% else %}
+    <p>Complete all modules in all active thematic areas to qualify for the overall LCAF Certificate.</p>
+  {% endif %}
+</div>
+{% if not viewer_role and schedule_preview %}
+<div class="card">
+  <h2>Upcoming sessions</h2>
+  <p>Plan your attendance using the programme delivery schedule.</p>
+  <div class="table-wrap">
+  <table>
+    <tr><th>Scheduled</th><th>Area</th><th>Module</th><th>Status</th></tr>
+    {% for s in schedule_preview %}
+    {% if s.status == 'scheduled' %}
+    <tr>
+      <td>{{ s.scheduled_date | session_schedule(s.scheduled_time) }}</td>
+      <td>{{ s.area_name }}</td>
+      <td>M{{ s.module_number }} — {{ s.module_name }}</td>
+      <td><span class="badge in_progress">{{ s.status }}</span></td>
+    </tr>
+    {% endif %}
+    {% endfor %}
+  </table>
+  </div>
+  <p style="margin-top:12px">
+    <a class="btn" href="{{ url_for('schedule_view') }}">View full class schedule</a>
+  </p>
+</div>
+{% endif %}
+{% for area in summary.areas %}
+<div class="card">
+  <h2>{{ area.name }}</h2>
+  <div class="progress-bar">
+    <div class="progress-fill" style="width:{{ area.percent }}%">{{ area.percent }}%</div>
+  </div>
+  <p>{{ area.completed_modules }} / {{ area.total_modules }} modules
+    {% if area.area_complete %} — <strong>Area complete</strong>{% endif %}</p>
+  <div class="table-wrap">
+  <table>
+    <tr><th>#</th><th>Module</th><th>Status</th></tr>
+    {% for m in area.modules %}
+    <tr>
+      <td>M{{ m.module_number }}</td>
+      <td>{{ m.name }}</td>
+      <td><span class="badge {{ m.status }}">{{ m.status_label }}</span></td>
+    </tr>
+    {% endfor %}
+  </table>
+  </div>
+</div>
+{% endfor %}
+{% if viewer_role %}
+<p><a class="btn" href="{{ url_for('facilitator_home') }}">Back to facilitator</a></p>
+{% endif %}
+{% endblock %}

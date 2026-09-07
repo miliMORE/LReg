@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}Learners{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>Manage learners</h1>
+  <div class="table-wrap">
+  <table>
+    <tr>
+      <th>Learner ID</th>
+      <th>Name</th>
+      <th>National ID</th>
+      <th data-sort="date">Join date</th>
+      <th>Placement</th>
+      <th>Program</th>
+      <th>Account</th>
+      <th class="actions-col">Actions</th>
+    </tr>
+    {% for l in learners %}
+    <tr>
+      <td><strong>{{ l.username }}</strong></td>
+      <td>{{ l.full_name }}</td>
+      <td>{{ l.national_id or '—' }}</td>
+      <td>{{ l.join_date }}</td>
+      <td>{{ l.placement_org or '—' }}</td>
+      <td>{{ l.status }}{% if l.must_change_password %} <span class="badge in_progress">pwd reset</span>{% endif %}</td>
+      <td>
+        <div class="status-stack">
+          {% if l.account_active %}
+            <span class="badge completed">Active</span>
+          {% else %}
+            <span class="badge inactive">Inactive</span>
+          {% endif %}
+          {% if l.account_active %}
+          <form method="post" action="{{ url_for('admin_set_learner_active', learner_id=l.id) }}"
+                onsubmit="return confirm('Deactivate {{ l.username }}? They will not be able to sign in.');">
+            <input type="hidden" name="active" value="0">
+            <button class="btn btn-sm btn-warn" type="submit">Deactivate</button>
+          </form>
+          {% else %}
+          <form method="post" action="{{ url_for('admin_set_learner_active', learner_id=l.id) }}">
+            <input type="hidden" name="active" value="1">
+            <button class="btn btn-sm btn-green" type="submit">Reactivate</button>
+          </form>
+          {% endif %}
+        </div>
+      </td>
+      <td class="actions-cell">
+        <div class="actions-group">
+          <a class="btn btn-sm" href="{{ url_for('admin_edit_learner', learner_id=l.id) }}">Edit</a>
+          <a class="btn btn-sm" href="{{ url_for('facilitator_learner_view', learner_id=l.id) }}">Progress</a>
+          <form method="post" action="{{ url_for('admin_reset_learner_password', learner_id=l.id) }}"
+                onsubmit="return confirm('Reset password for {{ l.username }} to {{ default_password }}?');">
+            <button class="btn btn-sm btn-danger" type="submit">Reset password</button>
+          </form>
+        </div>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  </div>
+</div>
+<div class="card">
+  <h2>Register new learner</h2>
+  <p><span style="color:var(--red)">*</span> Required field</p>
+  <form method="post" id="register-learner-form">
+    <label>Full name <span style="color:var(--red)">*</span></label>
+    <input name="full_name" required placeholder="e.g. Amina Ochieng">
+
+    <label>Learner ID <span style="color:var(--red)">*</span></label>
+    <input name="learner_id" id="learner_id" required
+           value="{{ next_learner_id }}" pattern="LCA[0-9]{4}"
+           title="Format: LCA followed by 4 digits (e.g. LCA0001)"
+           style="text-transform:uppercase; font-weight:bold; letter-spacing:1px;">
+    <p style="font-size:13px;color:#555;margin-top:4px;">
+      Auto-assigned next ID: <strong>{{ next_learner_id }}</strong>.
+      You may edit only if necessary — must match LCA#### and must not already exist.
+    </p>
+
+    <label>National ID number <span style="color:var(--red)">*</span></label>
+    <input name="national_id" required placeholder="e.g. 12345678" pattern="[0-9]{7,8}"
+           title="Kenya National ID: 7 or 8 digits">
+    <p style="font-size:13px;color:#555;">Kenya National ID: 7 or 8 digits, numbers only.</p>
+
+    <label>Join date <span style="color:var(--red)">*</span></label>
+    <input name="join_date" type="date" required>
+
+    <label>Placement organisation <span style="color:var(--red)">*</span></label>
+    <input name="placement_org" required placeholder="e.g. Kisumu Community NGO">
+
+    <label>Email <em>(optional)</em></label>
+    <input name="email" type="email" placeholder="learner@example.com"
+           pattern="[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}">
+
+    <label>Notes <em>(optional)</em></label>
+    <textarea name="notes" rows="2" placeholder="Internal admin notes"></textarea>
+
+    <p style="margin-top:12px;padding:12px;background:var(--light);border-radius:4px;font-size:14px;">
+      <strong>Initial password:</strong> {{ default_password }}
+    </p>
+
+    <p style="margin-top:16px"><button class="btn btn-green" type="submit">Register learner</button></p>
+  </form>
+</div>
+<p><a class="btn" href="{{ url_for('admin_home') }}">Back to admin</a></p>
+{% endblock %}

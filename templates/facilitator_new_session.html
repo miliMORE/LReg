@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}New session{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>Schedule delivery session</h1>
+  <p>Add a session to the rolling facilitator schedule. Learners who joined after past sessions will see those modules as catch-up.</p>
+  <p><span style="color:var(--red)">*</span> Required field</p>
+  <form method="post">
+    <label>Module <span style="color:var(--red)">*</span></label>
+    <select name="module_id" required>
+      {% for m in modules %}
+      <option value="{{ m.id }}">{{ m.area_name }} — M{{ m.module_number }}: {{ m.name }}</option>
+      {% endfor %}
+    </select>
+
+    <label>Session date <span style="color:var(--red)">*</span></label>
+    <input type="date" name="scheduled_date" required>
+
+    <label>Session time <span style="color:var(--red)">*</span> <em>(24-hour, Kenya local time)</em></label>
+    <input type="time" name="scheduled_time" required value="09:00">
+    <p style="font-size:13px;color:#555;">e.g. 09:00 for morning, 14:30 for afternoon</p>
+
+    <label>Session type <span style="color:var(--red)">*</span></label>
+    <select name="session_type" required>
+      <option value="online">Online</option>
+      <option value="practical">Practical</option>
+      <option value="both">Online + practical</option>
+    </select>
+
+    <label>Title <em>(optional)</em></label>
+    <input name="title" placeholder="e.g. Digital Literacy M6 — Live Session">
+
+    <p style="margin-top:16px">
+      <button class="btn btn-green" type="submit">Create session</button>
+      <a class="btn" href="{{ url_for('facilitator_home') }}">Cancel</a>
+    </p>
+  </form>
+</div>
+{% endblock %}

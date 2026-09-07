@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Sign in{% endblock %}
+{% block content %}
+<div class="login-shell">
+  <div class="card login-card">
+    <div class="login-header">
+      <div class="login-logo-wrap">
+        <img class="login-logo"
+             src="{{ url_for('static', filename='brand/lcaf-logo.png') }}"
+             alt="Light Come Africa Foundation">
+      </div>
+      <h1 class="login-title">Sign in</h1>
+    </div>
+    <form method="post" class="login-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+      <label>Username</label>
+      <input name="username" required autofocus autocomplete="username">
+
+      <label>Password</label>
+      <input name="password" type="password" required autocomplete="current-password">
+
+      <p style="margin-top:20px">
+        <button class="btn btn-green" type="submit" style="width:100%;max-width:none;">Log in</button>
+      </p>
+    </form>
+  </div>
+</div>
+{% endblock %}

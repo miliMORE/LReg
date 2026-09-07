@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Edit facilitator{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>Edit facilitator</h1>
+  <p>Correct name, phone, or job title. Email is the login username and cannot be changed.</p>
+
+  <div style="margin:16px 0;padding:12px;background:var(--light);border-radius:4px;font-size:14px;">
+    <strong>Email (login username):</strong> {{ facilitator.email }}<br>
+    <strong>Account:</strong>
+    {% if facilitator.is_active %}
+      <span class="badge completed">Active</span>
+    {% else %}
+      <span class="badge inactive">Inactive</span> — cannot sign in
+    {% endif %}
+  </div>
+
+  <form method="post">
+    <label>Full name <span style="color:var(--red)">*</span></label>
+    <input name="full_name" required value="{{ facilitator.full_name }}"
+           placeholder="e.g. Collins Milimo">
+
+    <label>Phone <em>(optional)</em></label>
+    <input name="phone" value="{{ facilitator.phone or '' }}"
+           placeholder="e.g. 0714421248 or +254714421248">
+
+    <label>Job title / role <em>(optional)</em></label>
+    <input name="job_title" value="{{ facilitator.job_title or '' }}"
+           placeholder="e.g. Digital Literacy Facilitator">
+
+    <p style="margin-top:16px">
+      <button class="btn btn-green" type="submit">Save details</button>
+      <a class="btn" href="{{ url_for('admin_facilitators') }}">Back to facilitators</a>
+    </p>
+  </form>
+</div>
+
+<div class="card">
+  <h2>Account access</h2>
+  {% if facilitator.is_active %}
+  <p>Deactivate this facilitator to block sign-in and platform access. Progress data is kept.</p>
+  <form method="post" action="{{ url_for('admin_set_facilitator_active', user_id=facilitator.id) }}"
+        onsubmit="return confirm('Deactivate {{ facilitator.full_name }}? They will not be able to sign in.');">
+    <input type="hidden" name="active" value="0">
+    <button class="btn btn-warn" type="submit">Deactivate account</button>
+  </form>
+  {% else %}
+  <p>This facilitator cannot sign in. Reactivate to restore access.</p>
+  <form method="post" action="{{ url_for('admin_set_facilitator_active', user_id=facilitator.id) }}">
+    <input type="hidden" name="active" value="1">
+    <button class="btn btn-green" type="submit">Reactivate account</button>
+  </form>
+  {% endif %}
+</div>
+{% endblock %}

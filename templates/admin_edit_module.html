@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Edit module{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>Edit module</h1>
+  <p><strong>{{ area.name }}</strong> — update module details. Module number and sort order must remain unique within this area.</p>
+
+  <div style="margin:16px 0;padding:12px;background:var(--light);border-radius:4px;font-size:14px;">
+    <strong>Status:</strong>
+    {% if module.is_active %}
+      <span class="badge completed">Active</span>
+    {% else %}
+      <span class="badge inactive">Obsolete</span>
+    {% endif %}
+  </div>
+
+  <form method="post">
+    <label>Module number <span style="color:var(--red)">*</span></label>
+    <input name="module_number" type="number" min="1" required value="{{ module.module_number }}">
+
+    <label>Module name <span style="color:var(--red)">*</span></label>
+    <input name="name" required value="{{ module.name }}">
+
+    <label>Description <em>(optional)</em></label>
+    <textarea name="description" rows="2">{{ module.description or '' }}</textarea>
+
+    <label>Sort order <span style="color:var(--red)">*</span></label>
+    <input name="sort_order" type="number" min="1" required value="{{ module.sort_order }}">
+
+    <p style="margin-top:16px">
+      <button class="btn btn-green" type="submit">Save changes</button>
+      <a class="btn" href="{{ url_for('admin_modules', area_id=area.id) }}">Back to modules</a>
+    </p>
+  </form>
+</div>
+
+<div class="card">
+  <h2>Offering status</h2>
+  {% if module.is_active %}
+  <p>Mark obsolete when this module is no longer delivered. Attendance and assignment records are preserved.</p>
+  <form method="post"
+        action="{{ url_for('admin_set_module_status', area_id=area.id, module_id=module.id) }}"
+        onsubmit="return confirm('Mark M{{ module.module_number }} as obsolete?');">
+    <input type="hidden" name="active" value="0">
+    <button class="btn btn-warn" type="submit">Mark module obsolete</button>
+  </form>
+  {% else %}
+  <p>This module is obsolete. Reactivate to schedule new sessions.</p>
+  <form method="post"
+        action="{{ url_for('admin_set_module_status', area_id=area.id, module_id=module.id) }}">
+    <input type="hidden" name="active" value="1">
+    <button class="btn btn-green" type="submit">Reactivate module</button>
+  </form>
+  {% endif %}
+</div>
+{% endblock %}

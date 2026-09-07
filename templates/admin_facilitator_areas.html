@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Thematic area assignments{% endblock %}
+{% block content %}
+<style>
+  .area-list { list-style:none;padding:0;margin:8px 0 0;max-width:480px; }
+  .area-list li { padding:10px 12px;border:1px solid #ddd;border-radius:4px;margin-bottom:8px;background:#fafafa; }
+  .area-list label { display:flex;align-items:flex-start;gap:10px;margin:0;font-weight:normal;cursor:pointer; }
+  .area-list input[type=checkbox] { width:auto;margin-top:3px; }
+  .area-name { font-weight:bold;color:var(--blue); }
+  .area-desc { font-size:13px;color:#555;margin-top:4px; }
+</style>
+
+<div class="card">
+  <h1>Thematic area assignments</h1>
+  <p>
+    <strong>{{ facilitator.full_name }}</strong> ({{ facilitator.email }})<br>
+    Assign one or more areas this facilitator may facilitate. They can only mark attendance
+    and assignments for modules in assigned areas.
+  </p>
+
+  {% if not all_areas %}
+  <p class="flash warning">No active thematic areas found. Add areas in Admin first.</p>
+  {% else %}
+  <form method="post">
+    <ul class="area-list">
+      {% for area in all_areas %}
+      <li>
+        <label>
+          <input type="checkbox" name="thematic_area_ids" value="{{ area.id }}"
+                 {% if area.id in assigned_ids %}checked{% endif %}>
+          <span>
+            <span class="area-name">{{ area.name }}</span>
+            {% if area.description %}
+            <div class="area-desc">{{ area.description }}</div>
+            {% endif %}
+          </span>
+        </label>
+      </li>
+      {% endfor %}
+    </ul>
+
+    <p style="margin-top:16px;font-size:13px;color:#555;">
+      Leave all unchecked to remove area access. Admin accounts always have full access.
+    </p>
+
+    <p style="margin-top:12px">
+      <button class="btn btn-green" type="submit">Save area assignments</button>
+      <a class="btn" href="{{ url_for('admin_facilitators') }}">Back to facilitators</a>
+    </p>
+  </form>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Admin{% endblock %}
+{% block content %}
+<div class="page-hero">
+  <div class="eyebrow">Administration</div>
+  <h1>Admin dashboard</h1>
+  <p>Learners, facilitators, and programme areas.</p>
+</div>
+
+<div class="grid-2" style="margin-bottom:24px;">
+  <div class="stat-card"><div class="num">{{ stats.areas }}</div><div class="label">Thematic areas</div></div>
+  <div class="stat-card"><div class="num">{{ stats.modules }}</div><div class="label">Active modules</div></div>
+  <div class="stat-card"><div class="num">{{ stats.learners }}</div><div class="label">Active learners</div></div>
+  <div class="stat-card"><div class="num">{{ stats.facilitators }}</div><div class="label">Facilitators</div></div>
+  <div class="stat-card"><div class="num">{{ stats.certificates }}</div><div class="label">Certificates issued</div></div>
+  {% if can_manage_admins %}
+  <div class="stat-card"><div class="num">{{ stats.admins }}</div><div class="label">Active admins</div></div>
+  {% endif %}
+</div>
+
+<div class="card">
+  <h2>Quick actions</h2>
+  <div class="btn-group">
+    <a class="btn" href="{{ url_for('admin_areas') }}">Manage thematic areas</a>
+    <a class="btn" href="{{ url_for('admin_learners') }}">Manage learners</a>
+    <a class="btn" href="{{ url_for('admin_facilitators') }}">Manage facilitators</a>
+    {% if can_manage_admins %}
+    <a class="btn" href="{{ url_for('admin_admins') }}">Manage admins</a>
+    {% endif %}
+    {% if is_super_admin %}
+    <a class="btn btn-outline" href="{{ url_for('admin_audit') }}">Activity &amp; login reports</a>
+    {% endif %}
+    <a class="btn btn-outline" href="{{ url_for('admin_criteria') }}">Completion criteria</a>
+    <a class="btn btn-green" href="{{ url_for('facilitator_home') }}">Facilitator tools</a>
+  </div>
+</div>
+
+<div class="card">
+  <h2>All learners — overall milestone tracker</h2>
+  <div class="table-wrap">
+    <table>
+      <tr><th>Learner</th><th data-sort="date">Joined</th><th data-sort="number">Overall %</th><th data-sort="number">Areas complete</th><th>Certificate</th><th class="no-sort"></th></tr>
+      {% for row in progress_rows %}
+      <tr>
+        <td><strong>{{ row.learner.username }}</strong> — {{ row.learner.full_name }}</td>
+        <td>{{ row.learner.join_date }}</td>
+        <td>{{ row.overall_percent }}%</td>
+        <td>{{ row.areas_complete }} / {{ row.areas_total }}</td>
+        <td>
+          {% if row.certificate_issued %}<span class="badge completed">Issued</span>
+          {% elif row.certificate_eligible %}
+          <form method="post" action="{{ url_for('admin_issue_certificate', learner_id=row.learner.id) }}" style="display:inline">
+            <button class="btn btn-sm btn-green" type="submit">Issue LCAF Certificate</button>
+          </form>
+          {% else %}<span class="badge in_progress">In progress</span>{% endif %}
+        </td>
+        <td>
+          <a class="btn btn-sm" href="{{ url_for('facilitator_learner_view', learner_id=row.learner.id) }}">Details</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+</div>
+{% endblock %}

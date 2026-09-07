@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Edit admin{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>Edit admin</h1>
+  <p>Update name or contact email. Username is the login and cannot be changed.</p>
+
+  <div style="margin:16px 0;padding:12px;background:var(--light);border-radius:4px;font-size:14px;">
+    <strong>Username (login):</strong> {{ admin_user.username }}<br>
+    <strong>Account:</strong>
+    {% if admin_user.is_active %}
+      <span class="badge completed">Active</span>
+    {% else %}
+      <span class="badge inactive">Inactive</span> — cannot sign in
+    {% endif %}
+  </div>
+
+  <form method="post">
+    <label>Full name <span style="color:var(--red)">*</span></label>
+    <input name="full_name" required value="{{ admin_user.full_name }}"
+           placeholder="e.g. Jane Wanjiku">
+
+    <label>Email <em>(optional)</em></label>
+    <input name="email" type="email" value="{{ admin_user.email or '' }}"
+           placeholder="admin@lightcomeafrica.com">
+
+    <p style="margin-top:16px">
+      <button class="btn btn-green" type="submit">Save details</button>
+      <a class="btn" href="{{ url_for('admin_admins') }}">Back to admins</a>
+    </p>
+  </form>
+</div>
+
+<div class="card">
+  <h2>Account access</h2>
+  {% if admin_user.is_active %}
+  <p>Deactivate this admin to block sign-in. Programme data is unchanged.</p>
+  <form method="post" action="{{ url_for('admin_set_admin_active', user_id=admin_user.id) }}"
+        onsubmit="return confirm('Deactivate {{ admin_user.full_name }}? They will not be able to sign in.');">
+    <input type="hidden" name="active" value="0">
+    <button class="btn btn-warn" type="submit">Deactivate account</button>
+  </form>
+  {% else %}
+  <p>This admin cannot sign in. Reactivate to restore access.</p>
+  <form method="post" action="{{ url_for('admin_set_admin_active', user_id=admin_user.id) }}">
+    <input type="hidden" name="active" value="1">
+    <button class="btn btn-green" type="submit">Reactivate account</button>
+  </form>
+  {% endif %}
+</div>
+{% endblock %}

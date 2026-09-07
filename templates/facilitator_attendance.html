@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Attendance log{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>Electronic attendance log</h1>
+  <p><strong>{{ ds.area_name }}</strong> — M{{ ds.module_number }}: {{ ds.module_name }}</p>
+  <p>
+    <strong>Planned:</strong> {{ ds.scheduled_date | session_schedule(ds.scheduled_time) }}
+    | {{ ds.session_type }} | {{ ds.status }}
+    {% if ds|session_conducted %}
+    <br><strong>Conducted:</strong> {{ ds|session_conducted }}
+    {% endif %}
+  </p>
+  <p>
+    <a class="btn btn-sm" href="{{ url_for('facilitator_edit_session', session_id=ds.id) }}">Edit schedule</a>
+  </p>
+  <p>Tick learners who attended this session. Completion requires attendance <em>and</em> assignment submission.</p>
+  <form method="post">
+    <div class="table-wrap">
+    <table>
+      <tr><th>Attended</th><th>Learner ID</th><th>Name</th><th>Joined</th><th>Placement</th></tr>
+      {% for l in learners %}
+      <tr>
+        <td><input type="checkbox" name="learner_{{ l.id }}" {% if attendance.get(l.id) %}checked{% endif %}></td>
+        <td>{{ l.username }}</td>
+        <td>{{ l.full_name }}</td>
+        <td>{{ l.join_date }}</td>
+        <td>{{ l.placement_org or '—' }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+    </div>
+
+    <div style="margin-top:20px;padding:16px;background:var(--light);border-radius:4px;">
+      <h3 style="margin-top:0;color:var(--blue);font-size:16px;">When was this class conducted?</h3>
+      <p style="font-size:14px;margin-bottom:12px;">
+        The planned schedule may differ from the actual delivery date.
+        Record when the class <em>actually ran</em> when marking the session complete.
+      </p>
+      <label>Conducted date <span style="color:var(--red)">*</span> <em>(required when completing session)</em></label>
+      <input type="date" name="conducted_date"
+             value="{{ ds.conducted_date or ds.scheduled_date }}">
+
+      <label>Conducted time <span style="color:var(--red)">*</span></label>
+      <input type="time" name="conducted_time"
+             value="{{ ds.conducted_time or ds.scheduled_time or '09:00' }}">
+
+      <p style="margin-top:12px">
+        <label><input type="checkbox" name="mark_session_complete"
+          {% if ds.status == 'completed' %}checked{% endif %}>
+          Mark this delivery session as completed</label>
+      </p>
+    </div>
+
+    <p style="margin-top:16px">
+      <button class="btn btn-green" type="submit">Save attendance</button>
+      <a class="btn" href="{{ url_for('facilitator_assignments', module_id=ds.mod_id) }}">Mark assignments for this module</a>
+      <a class="btn" href="{{ url_for('facilitator_home') }}">Back</a>
+    </p>
+  </form>
+</div>
+{% endblock %}

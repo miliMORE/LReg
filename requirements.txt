@@ -1,0 +1,6 @@
+flask>=3.0.0
+werkzeug>=3.0.0
+python-dotenv>=1.0.0
+flask-wtf>=1.2.0
+gunicorn>=22.0.0
+tzdata>=2024.1

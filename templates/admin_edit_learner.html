@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Edit learner{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>Edit learner</h1>
+  <p>Update contact and placement details. Learner ID and join date cannot be changed — they affect login and catch-up tracking.</p>
+
+  <div style="margin:16px 0;padding:12px;background:var(--light);border-radius:4px;font-size:14px;">
+    <strong>Learner ID (login):</strong> {{ learner.username }}<br>
+    <strong>Join date:</strong> {{ learner.join_date }}<br>
+    <strong>Account:</strong>
+    {% if learner.account_active %}
+      <span class="badge completed">Active</span>
+    {% else %}
+      <span class="badge inactive">Inactive</span> — cannot sign in
+    {% endif %}
+  </div>
+
+  <form method="post">
+    <label>Full name <span style="color:var(--red)">*</span></label>
+    <input name="full_name" required value="{{ learner.full_name }}"
+           placeholder="e.g. Amina Ochieng">
+
+    <label>National ID number <span style="color:var(--red)">*</span></label>
+    <input name="national_id" required value="{{ learner.national_id or '' }}"
+           placeholder="e.g. 12345678" pattern="[0-9]{7,8}"
+           title="Kenya National ID: 7 or 8 digits">
+
+    <label>Placement organisation <span style="color:var(--red)">*</span></label>
+    <input name="placement_org" required value="{{ learner.placement_org or '' }}"
+           placeholder="e.g. Kisumu Community NGO">
+
+    <label>Email <em>(optional)</em></label>
+    <input name="email" type="email" value="{{ learner.email or '' }}"
+           placeholder="learner@example.com">
+
+    <label>Phone <em>(optional)</em></label>
+    <input name="phone" value="{{ learner.phone or '' }}"
+           placeholder="e.g. 0714421248 or +254714421248">
+
+    <label>Notes <em>(optional, admin only)</em></label>
+    <textarea name="notes" rows="3" placeholder="Internal admin notes">{{ learner.notes or '' }}</textarea>
+
+    <p style="margin-top:16px">
+      <button class="btn btn-green" type="submit">Save changes</button>
+      <a class="btn" href="{{ url_for('admin_learners') }}">Cancel</a>
+    </p>
+  </form>
+</div>
+
+<div class="card">
+  <h2>Account access</h2>
+  {% if learner.account_active %}
+  <p>Deactivate this learner to block sign-in and platform access. Progress data is kept.</p>
+  <form method="post" action="{{ url_for('admin_set_learner_active', learner_id=learner.id) }}"
+        onsubmit="return confirm('Deactivate {{ learner.username }} ({{ learner.full_name }})? They will not be able to sign in.');">
+    <input type="hidden" name="active" value="0">
+    <button class="btn btn-warn" type="submit">Deactivate account</button>
+  </form>
+  {% else %}
+  <p>This learner cannot sign in. Reactivate to restore access.</p>
+  <form method="post" action="{{ url_for('admin_set_learner_active', learner_id=learner.id) }}">
+    <input type="hidden" name="active" value="1">
+    <button class="btn btn-green" type="submit">Reactivate account</button>
+  </form>
+  {% endif %}
+</div>
+{% endblock %}

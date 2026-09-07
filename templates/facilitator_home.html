@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Facilitator{% endblock %}
+{% block content %}
+<div class="page-hero">
+  <div class="eyebrow">Facilitator</div>
+  <h1>Facilitator dashboard</h1>
+</div>
+<div class="card">
+  <h2>Your tools</h2>
+  {% if not is_admin and assigned_areas %}
+    <p style="font-size:14px;margin-top:8px;">
+      <strong>Your thematic areas:</strong>
+      {% for a in assigned_areas %}{{ a.name }}{% if not loop.last %}, {% endif %}{% endfor %}
+    </p>
+  {% endif %}
+  <p>
+    <a class="btn" href="{{ url_for('facilitator_new_session') }}">Schedule new session</a>
+    <a class="btn" href="{{ url_for('schedule_view') }}">Filter &amp; download schedule</a>
+  </p>
+</div>
+<div class="card">
+  <h2>Programme delivery schedule</h2>
+  <div class="table-wrap"><table>
+    <tr>
+      <th data-sort="date">Scheduled</th>
+      <th data-sort="date">Conducted</th>
+      <th>Area</th>
+      <th>Module</th>
+      <th>Type</th>
+      <th>Status</th>
+      <th class="actions-col">Actions</th>
+    </tr>
+    {% for s in sessions %}
+    {% set can_manage = is_admin or (assigned_area_ids and s.thematic_area_id in assigned_area_ids) %}
+    <tr>
+      <td>{{ s.scheduled_date | session_schedule(s.scheduled_time) }}</td>
+      <td>
+        {% if s|session_conducted %}
+          {{ s|session_conducted }}
+        {% else %}
+          —
+        {% endif %}
+      </td>
+      <td>{{ s.area_name }}</td>
+      <td>M{{ s.module_number }} — {{ s.module_name }}</td>
+      <td>{{ s.session_type }}</td>
+      <td>{{ s.status }}</td>
+      <td class="actions-cell">
+        <div class="actions-group">
+          {% if can_manage %}
+            <a class="btn btn-sm" href="{{ url_for('facilitator_edit_session', session_id=s.id) }}">Edit schedule</a>
+            {% if s.status != 'cancelled' %}
+            <a class="btn btn-sm" href="{{ url_for('facilitator_attendance', session_id=s.id) }}">Attendance</a>
+            <a class="btn btn-sm" href="{{ url_for('facilitator_assignments', module_id=s.module_id) }}">Assignments</a>
+            {% endif %}
+          {% else %}
+            <span class="view-only">View only</span>
+          {% endif %}
+        </div>
+      </td>
+    </tr>
+    {% else %}
+    <tr><td colspan="7">No sessions scheduled yet.</td></tr>
+    {% endfor %}
+  </table></div>
+</div>
+<div class="card">
+  <h2>Active learners — view progress</h2>
+  <div class="table-wrap"><table>
+    <tr><th>Learner ID</th><th>Name</th><th data-sort="date">Joined</th><th>Placement</th><th class="no-sort"></th></tr>
+    {% for l in learners %}
+    <tr>
+      <td><strong>{{ l.username }}</strong></td>
+      <td>{{ l.full_name }}</td>
+      <td>{{ l.join_date }}</td>
+      <td>{{ l.placement_org or '—' }}</td>
+      <td><a class="btn btn-sm" href="{{ url_for('facilitator_learner_view', learner_id=l.id) }}">View progress</a></td>
+    </tr>
+    {% endfor %}
+  </table></div>
+</div>
+{% endblock %}

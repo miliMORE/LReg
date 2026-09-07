@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+{% block title %}Programme schedule{% endblock %}
+{% block content %}
+<div class="page-hero">
+  <div class="eyebrow">Programme schedule</div>
+  <h1>Class &amp; delivery schedule</h1>
+  <p>
+    Filter sessions by date, thematic area, status, or type — then download as a
+    <strong>spreadsheet (CSV)</strong> or <strong>calendar file (ICS)</strong> for Outlook or Google Calendar.
+    Scheduled dates and times are in <strong>{{ eat_label }}</strong>.
+  </p>
+  {% if learner %}
+  <p style="font-size:14px;color:#555;margin-top:8px;">
+    Your join date: <strong>{{ learner.join_date }}</strong> — use filters to plan upcoming attendance.
+  </p>
+  {% endif %}
+</div>
+
+<div class="flash info" style="margin-bottom:20px;">
+  <strong>All scheduled dates and times use {{ eat_label }}.</strong>
+  Date range filters (From / To) are calendar dates in East Africa Time.
+  Downloads include only sessions matching your selected filters.
+</div>
+
+<div class="card">
+  <h2>Filter schedule</h2>
+  <p style="font-size:14px;color:#555;margin-top:0;">
+    Quick presets:
+    <a href="{{ url_for('schedule_view', timeframe='upcoming') }}">Upcoming sessions</a> ·
+    <a href="{{ url_for('schedule_view', timeframe='past') }}">Past sessions</a> ·
+    <a href="{{ url_for('schedule_view', timeframe='all') }}">All sessions</a>
+  </p>
+  <form method="get" class="schedule-filters">
+    <div class="filter-grid">
+      <div class="filter-field">
+        <label>Show</label>
+        <select name="timeframe">
+          {% for key, label in timeframe_options.items() %}
+          <option value="{{ key }}"{% if filters.timeframe == key %} selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="filter-field">
+        <label>Thematic area</label>
+        <select name="area_id">
+          <option value="">All areas</option>
+          {% for area in areas %}
+          <option value="{{ area.id }}"{% if filters.area_id == area.id %} selected{% endif %}>{{ area.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="filter-field">
+        <label>Status</label>
+        <select name="status">
+          {% for key, label in status_options.items() %}
+          <option value="{{ key }}"{% if (filters.status or '') == key %} selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="filter-field">
+        <label>Session type</label>
+        <select name="session_type">
+          {% for key, label in session_type_options.items() %}
+          <option value="{{ key }}"{% if (filters.session_type or '') == key %} selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="filter-field">
+        <label>From date (EAT)</label>
+        <input type="date" name="date_from" value="{{ filters.date_from or '' }}">
+      </div>
+      <div class="filter-field">
+        <label>To date (EAT)</label>
+        <input type="date" name="date_to" value="{{ filters.date_to or '' }}">
+      </div>
+    </div>
+    <div class="btn-group" style="margin-top:16px;flex-wrap:wrap;">
+      <button class="btn" type="submit">Apply filters</button>
+      <a class="btn btn-outline" href="{{ url_for('schedule_view', timeframe='all') }}">Clear filters</a>
+    </div>
+  </form>
+
+  {% if not filters_are_default %}
+  <div class="filter-summary" style="margin-top:16px;">
+    <span class="filter-summary-label">Active filters:</span>
+    {% for label in filter_summary %}
+    <span class="filter-chip">{{ label }}</span>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+
+<div class="card">
+  <h2>Download filtered schedule</h2>
+  <p style="font-size:14px;color:#555;margin-top:0;">
+    Exports <strong>{{ sessions|length }} session{{ 's' if sessions|length != 1 else '' }}</strong>
+    matching your current filters.
+    {% if not filters_are_default %}
+    Filtered by: {{ filter_summary | join(' · ') }}.
+    {% endif %}
+  </p>
+  <div class="btn-group" style="flex-wrap:wrap;">
+    <a class="btn btn-green"
+       href="{{ url_for('schedule_download', format='csv', timeframe=filters.timeframe, area_id=filters.area_id or '', status=filters.status or '', session_type=filters.session_type or '', date_from=filters.date_from or '', date_to=filters.date_to or '') }}">
+      Download CSV (Excel / Sheets)
+    </a>
+    <a class="btn btn-green"
+       href="{{ url_for('schedule_download', format='ics', timeframe=filters.timeframe, area_id=filters.area_id or '', status=filters.status or '', session_type=filters.session_type or '', date_from=filters.date_from or '', date_to=filters.date_to or '') }}">
+      Download calendar (ICS)
+    </a>
+  </div>
+  <p style="font-size:13px;color:#555;margin-top:12px;margin-bottom:0;">
+    CSV opens in Excel or Google Sheets. ICS imports into Google Calendar, Outlook, or Apple Calendar.
+    Cancelled sessions are hidden unless you filter by status <em>Cancelled</em>.
+  </p>
+</div>
+
+<div class="card">
+  <h2>Sessions <span style="font-weight:normal;font-size:14px;">({{ sessions|length }} shown — click column headers to sort)</span></h2>
+  <div class="table-wrap">
+  <table>
+    <tr>
+      <th data-sort="date">Scheduled (EAT)</th>
+      <th data-sort="date">Conducted (EAT)</th>
+      <th>Area</th>
+      <th>Module</th>
+      <th>Type</th>
+      <th>Status</th>
+      <th>Facilitator</th>
+    </tr>
+    {% for s in sessions %}
+    <tr>
+      <td data-sort-value="{{ s.scheduled_date }} {{ s.scheduled_time or '' }}">
+        {{ s.scheduled_date | session_schedule(s.scheduled_time) }}
+      </td>
+      <td>
+        {% if s|session_conducted %}
+          {{ s|session_conducted }}
+        {% else %}
+          —
+        {% endif %}
+      </td>
+      <td>{{ s.area_name }}</td>
+      <td>M{{ s.module_number }} — {{ s.module_name }}</td>
+      <td>{{ s.session_type }}</td>
+      <td>
+        <span class="badge {% if s.status == 'completed' %}completed{% elif s.status == 'scheduled' %}in_progress{% else %}not_started{% endif %}">
+          {{ s.status }}
+        </span>
+      </td>
+      <td>{{ s.facilitator_name or '—' }}</td>
+    </tr>
+    {% else %}
+    <tr><td colspan="7">No sessions match your filters.</td></tr>
+    {% endfor %}
+  </table>
+  </div>
+</div>
+
+<p class="btn-group">
+  {% if session.role == 'learner' %}
+  <a class="btn" href="{{ url_for('learner_progress') }}">My progress</a>
+  {% elif session.role in ['admin', 'super_admin', 'facilitator'] %}
+  <a class="btn" href="{{ url_for('facilitator_home') }}">Facilitator dashboard</a>
+  {% if session.role in ['admin', 'super_admin'] %}
+  <a class="btn btn-outline" href="{{ url_for('admin_home') }}">Admin home</a>
+  {% endif %}
+  {% endif %}
+</p>
+{% endblock %}

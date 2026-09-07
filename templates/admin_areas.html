@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Thematic areas{% endblock %}
+{% block content %}
+<div class="page-hero">
+  <div class="eyebrow">Programme areas</div>
+  <h1>Manage thematic areas</h1>
+</div>
+<div class="card">
+  <h2>Current programme areas</h2>
+  <div class="table-wrap">
+  <table>
+    <tr>
+      <th data-sort="number">Order</th>
+      <th>Name</th>
+      <th>Slug</th>
+      <th>Status</th>
+      <th>Modules</th>
+      <th class="actions-col">Actions</th>
+    </tr>
+    {% for a in areas %}
+    <tr>
+      <td>{{ a.sort_order }}</td>
+      <td>{{ a.name }}</td>
+      <td><code>{{ a.slug }}</code></td>
+      <td>
+        {% if a.is_active %}
+          <span class="badge completed">Active</span>
+        {% else %}
+          <span class="badge inactive">Obsolete</span>
+        {% endif %}
+      </td>
+      <td><a href="{{ url_for('admin_modules', area_id=a.id) }}">Manage modules</a></td>
+      <td class="actions-cell">
+        <div class="actions-group">
+          <a class="btn btn-sm" href="{{ url_for('admin_edit_area', area_id=a.id) }}">Edit</a>
+          {% if a.is_active %}
+          <form method="post" action="{{ url_for('admin_set_area_status', area_id=a.id) }}"
+                onsubmit="return confirm('Mark {{ a.name }} as obsolete? Existing learner data will be kept.');">
+            <input type="hidden" name="active" value="0">
+            <button class="btn btn-sm btn-warn" type="submit">Mark obsolete</button>
+          </form>
+          {% else %}
+          <form method="post" action="{{ url_for('admin_set_area_status', area_id=a.id) }}">
+            <input type="hidden" name="active" value="1">
+            <button class="btn btn-sm btn-green" type="submit">Reactivate</button>
+          </form>
+          {% endif %}
+          {% if is_super_admin %}
+          <form method="post" action="{{ url_for('admin_delete_area', area_id=a.id) }}"
+                class="delete-confirm-form"
+                data-confirm-name="{{ a.name }}"
+                onsubmit="return lcafConfirmDelete(this, 'thematic area');">
+            <input type="hidden" name="confirm_name" value="">
+            <button class="btn btn-sm btn-danger" type="submit">Delete permanently</button>
+          </form>
+          {% endif %}
+        </div>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  </div>
+</div>
+<div class="card">
+  <h2>Add thematic area</h2>
+  <p><span style="color:var(--red)">*</span> Required field</p>
+  <form method="post">
+    <label>Name <span style="color:var(--red)">*</span></label>
+    <input name="name" required placeholder="e.g. Entrepreneurship">
+
+    <label>Slug <span style="color:var(--red)">*</span> <em>(URL-safe identifier)</em></label>
+    <input name="slug" required placeholder="e.g. entrepreneurship"
+           pattern="[a-z0-9]+(-[a-z0-9]+)*"
+           title="Lowercase letters, numbers, and hyphens only">
+
+    <label>Description <em>(optional)</em></label>
+    <textarea name="description" rows="3" placeholder="Brief summary of this thematic area"></textarea>
+
+    <label>Sort order <span style="color:var(--red)">*</span></label>
+    <input name="sort_order" type="number" min="1" required value="{{ next_sort_order }}">
+    <p style="font-size:13px;color:#555;margin-top:4px;">
+      Suggested next order: <strong>{{ next_sort_order }}</strong>.
+      Must be a positive whole number and unique across all areas.
+    </p>
+
+    <p style="margin-top:16px"><button class="btn btn-green" type="submit">Add thematic area</button></p>
+  </form>
+</div>
+<p><a class="btn" href="{{ url_for('admin_home') }}">Back to admin</a></p>
+{% endblock %}

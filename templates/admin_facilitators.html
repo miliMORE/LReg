@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Facilitators{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>Manage facilitators</h1>
+  <div class="table-wrap">
+  <table>
+    <tr>
+      <th>Name</th>
+      <th>Email (login)</th>
+      <th>Phone</th>
+      <th>Job title</th>
+      <th>Thematic areas</th>
+      <th>Status</th>
+      <th class="actions-col">Actions</th>
+    </tr>
+    {% for f in facilitators %}
+    <tr>
+      <td>{{ f.user.full_name }}</td>
+      <td>{{ f.user.email }}</td>
+      <td>{{ f.user.phone or '—' }}</td>
+      <td>{{ f.user.job_title or '—' }}</td>
+      <td>{{ f.area_labels }}</td>
+      <td>
+        <div class="status-stack">
+          {% if f.user.is_active %}
+            <span class="badge completed">Active</span>
+          {% else %}
+            <span class="badge inactive">Inactive</span>
+          {% endif %}
+          {% if f.user.must_change_password %}<span class="badge in_progress">pwd reset</span>{% endif %}
+          {% if f.user.is_active %}
+          <form method="post" action="{{ url_for('admin_set_facilitator_active', user_id=f.user.id) }}"
+                onsubmit="return confirm('Deactivate {{ f.user.full_name }}? They will not be able to sign in.');">
+            <input type="hidden" name="active" value="0">
+            <button class="btn btn-sm btn-warn" type="submit">Deactivate</button>
+          </form>
+          {% else %}
+          <form method="post" action="{{ url_for('admin_set_facilitator_active', user_id=f.user.id) }}">
+            <input type="hidden" name="active" value="1">
+            <button class="btn btn-sm btn-green" type="submit">Reactivate</button>
+          </form>
+          {% endif %}
+        </div>
+      </td>
+      <td class="actions-cell">
+        <div class="actions-stack">
+          <div class="actions-row">
+            <a class="btn btn-sm" href="{{ url_for('admin_edit_facilitator', user_id=f.user.id) }}">Edit</a>
+            <a class="btn btn-sm" href="{{ url_for('admin_facilitator_areas', user_id=f.user.id) }}"
+               title="Thematic area assignments">Areas</a>
+          </div>
+          <div class="actions-row">
+            <form method="post" action="{{ url_for('admin_reset_facilitator_password', user_id=f.user.id) }}"
+                  onsubmit="return confirm('Reset password for {{ f.user.email }} to {{ default_password }}?');">
+              <button class="btn btn-sm btn-danger" type="submit">Reset password</button>
+            </form>
+          </div>
+        </div>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  </div>
+</div>
+<div class="card">
+  <h2>Register new facilitator</h2>
+  <p><span style="color:var(--red)">*</span> Required field</p>
+  <form method="post">
+    <label>Full name <span style="color:var(--red)">*</span></label>
+    <input name="full_name" required placeholder="e.g. Collins Milimo">
+
+    <label>Email address <span style="color:var(--red)">*</span> <em>(used as login username)</em></label>
+    <input name="email" type="email" required placeholder="facilitator@lightcomeafrica.com">
+
+    <label>Phone</label>
+    <input name="phone" placeholder="e.g. 0714421248 or +254714421248">
+
+    <label>Job title / role</label>
+    <input name="job_title" placeholder="e.g. Digital Literacy Facilitator">
+
+    <p style="margin-top:12px;padding:12px;background:var(--light);border-radius:4px;font-size:14px;">
+      <strong>Initial password:</strong> {{ default_password }}
+    </p>
+
+    <p style="margin-top:16px"><button class="btn btn-green" type="submit">Register facilitator</button></p>
+  </form>
+</div>
+<p><a class="btn" href="{{ url_for('admin_home') }}">Back to admin</a></p>
+{% endblock %}
